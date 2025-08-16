@@ -55,6 +55,10 @@ ExportedObj/
 *.opendb
 *.VC.db
 
+# VS Code
+.vscode/
+.vsconfig
+
 # Unity3D generated meta files
 *.pidb.meta
 *.pdb.meta
@@ -97,3 +101,7 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+
+# Gitignore
+.gitignore
