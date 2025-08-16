@@ -1,0 +1,24 @@
+# VS Code settings (personal, don't commit)
+.vscode/
+
+# Unity user-specific settings
+UserSettings/
+
+# Unity caches
+Library/
+Temp/
+Logs/
+MemoryCaptures/
+
+# Builds
+Build/
+Builds/
+
+# Visual Studio & IDE stuff
+.vs/
+.vsconfig
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
