@@ -55,9 +55,6 @@ ExportedObj/
 *.opendb
 *.VC.db
 
-# VS Code
-.vscode/
-
 # Unity3D generated meta files
 *.pidb.meta
 *.pdb.meta
@@ -102,5 +99,17 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
 
-# Gitignore
-.gitignore
+# VS Code settings (personal, don't commit)
+.vscode/
+
+# Unity user-specific settings
+UserSettings/
+
+# Visual Studio & IDE stuff
+.vs/
+.vsconfig
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
