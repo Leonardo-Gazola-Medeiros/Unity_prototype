@@ -3,25 +3,37 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5f;
-    public float rotateSpeed = 720f; // degrees per second
+    private Animator animator;
+    private Rigidbody rb;
 
-    void Update()
+    private void Start()
     {
-        // Get input
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody>();
+    }
 
-        // Movement direction
-        Vector3 move = new Vector3(moveX, 0, moveZ).normalized;
+    private void Update()
+    {
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        Vector3 movement = new Vector3(horizontal, 0, vertical);
 
-        if (move.magnitude > 0.1f)
+        // Move character
+        rb.MovePosition(transform.position + movement * moveSpeed * Time.deltaTime);
+        transform.Translate(movement);
+
+        // Update animation
+        float speed = movement.magnitude;
+        animator.SetFloat("Speed", speed);
+
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            // Move
-            transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+            animator.SetTrigger("Jump");
+        }
 
-            // Rotate towards movement direction
-            Quaternion targetRotation = Quaternion.LookRotation(move, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
+        if (Input.GetMouseButtonDown(0))
+        {
+            animator.SetTrigger("Attack");
         }
     }
 }
