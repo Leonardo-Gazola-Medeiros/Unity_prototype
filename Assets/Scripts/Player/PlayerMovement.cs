@@ -40,6 +40,16 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("Jump", false);
         }
 
+        // Sprint (Shift)
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            animator.SetBool("Sprint", true);
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            animator.SetBool("Sprint", false);
+        }
+
         // Attack (mouse click)
         if (Input.GetMouseButtonDown(0))
         {
