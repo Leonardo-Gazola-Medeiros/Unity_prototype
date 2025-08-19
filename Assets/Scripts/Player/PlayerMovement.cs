@@ -14,23 +14,33 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-        Vector3 movement = new Vector3(horizontal, 0, vertical);
+        float horizontal = Input.GetAxis("Horizontal"); // A-D
+        float vertical = Input.GetAxis("Vertical");     // W-S
 
-        // Move character
-        rb.MovePosition(transform.position + movement * moveSpeed * Time.deltaTime);
-        transform.Translate(movement);
+        Vector3 movement = new Vector3(horizontal, 0, vertical).normalized;
 
-        // Update animation
-        float speed = movement.magnitude;
-        animator.SetFloat("Speed", speed);
-
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Move with Rigidbody for physics
+        if (movement.magnitude > 0)
         {
-            animator.SetTrigger("Jump");
+            rb.MovePosition(transform.position + movement * moveSpeed * Time.deltaTime);
+
         }
 
+        // Update animator parameters
+        animator.SetFloat("Horizontal", horizontal);
+        animator.SetFloat("Vertical", vertical);
+
+        // Jump (spacebar)
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            animator.SetBool("Jump", true);
+        }
+        else if (Input.GetKeyUp(KeyCode.Space))
+        {
+            animator.SetBool("Jump", false);
+        }
+
+        // Attack (mouse click)
         if (Input.GetMouseButtonDown(0))
         {
             animator.SetTrigger("Attack");
