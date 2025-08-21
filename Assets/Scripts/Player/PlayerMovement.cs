@@ -1,15 +1,23 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5f;
+    public float jumpForce = 7f;
+    public float groundCheckDistance = 0.2f;
+
     private Animator animator;
     private Rigidbody rb;
+    private bool isGrounded;
 
     private void Start()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+
+        // Settings for Rigidbody
+        rb.constraints = RigidbodyConstraints.FreezeRotation; // prevent tipping over
     }
 
     private void Update()
@@ -19,18 +27,16 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 movement = new Vector3(horizontal, 0, vertical).normalized;
 
-        // Move with Rigidbody for physics
+        // Movement (handled in FixedUpdate for physics)
         if (movement.magnitude > 0)
         {
-            rb.MovePosition(transform.position + movement * moveSpeed * Time.deltaTime);
-
+            Move(movement);
         }
 
-        // Update animator parameters
-        animator.SetFloat("Horizontal", horizontal);
-        animator.SetFloat("Vertical", vertical);
+        // Ground check
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance + 0.1f);
 
-        // Jump (spacebar)
+        // Jump (spacebar) 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             animator.SetBool("Jump", true);
@@ -40,12 +46,17 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("Jump", false);
         }
 
+        // Animator updates
+        animator.SetFloat("Horizontal", horizontal);
+        animator.SetFloat("Vertical", vertical);
+        animator.SetBool("Jump", !isGrounded);
+
         // Sprint (Shift)
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift))
         {
             animator.SetBool("Sprint", true);
         }
-        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        else
         {
             animator.SetBool("Sprint", false);
         }
@@ -55,5 +66,18 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetTrigger("Attack");
         }
+    }
+
+    private void Move(Vector3 direction)
+    {
+        // Convert movement relative to player’s forward
+        Vector3 moveDir = transform.TransformDirection(direction) * moveSpeed;
+        moveDir.y = rb.linearVelocity.y; // keep gravity effect
+        rb.linearVelocity = moveDir;
+    }
+
+    private void Jump()
+    {
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
     }
 }
