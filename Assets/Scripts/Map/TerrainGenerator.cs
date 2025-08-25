@@ -5,8 +5,8 @@ public class TerrainChunkGenerator : MonoBehaviour
 {
     public Transform player;             // Reference to the player
     public int chunkSize = 100;          // Width & length of each chunk
-    public int height = 20;              // Max terrain height
-    public float noiseScale = 60f;       // How "stretchy" the noise is
+    public float heightMultiplier = 20f; // Max terrain height
+    public float noiseScale = 20f;       // Controls terrain smoothness
     public int renderDistance = 2;       // How many chunks away to load
 
     private Dictionary<Vector2, GameObject> terrainChunks = new Dictionary<Vector2, GameObject>();
@@ -18,9 +18,9 @@ public class TerrainChunkGenerator : MonoBehaviour
 
     void GenerateChunksAroundPlayer()
     {
-        // Find player's current chunk position
-        int playerX = Mathf.FloorToInt(player.position.x / chunkSize);
-        int playerZ = Mathf.FloorToInt(player.position.z / chunkSize);
+        // Find player's current chunk position in chunk grid
+        int playerX = Mathf.FloorToInt(player.position.x / (chunkSize - 1));
+        int playerZ = Mathf.FloorToInt(player.position.z / (chunkSize - 1));
 
         for (int x = -renderDistance; x <= renderDistance; x++)
         {
@@ -30,45 +30,64 @@ public class TerrainChunkGenerator : MonoBehaviour
 
                 if (!terrainChunks.ContainsKey(chunkCoord))
                 {
-                    CreateChunk(chunkCoord);
+                    GameObject chunk = GenerateChunk((int)chunkCoord.x, (int)chunkCoord.y);
+                    terrainChunks.Add(chunkCoord, chunk);
                 }
             }
         }
     }
 
-    void CreateChunk(Vector2 coord)
+    public GameObject GenerateChunk(int chunkX, int chunkZ)
     {
-        // Create GameObject for terrain chunk
-        GameObject chunk = new GameObject("Chunk_" + coord);
-        chunk.transform.position = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
+        GameObject chunk = new GameObject($"Chunk_{chunkX}_{chunkZ}");
+        chunk.transform.position = new Vector3(chunkX * (chunkSize - 1), 0, chunkZ * (chunkSize - 1));
 
-        // Add Terrain + TerrainData
-        TerrainData terrainData = new TerrainData();
-        terrainData.heightmapResolution = chunkSize + 1;
-        terrainData.size = new Vector3(chunkSize, height, chunkSize);
+        MeshFilter mf = chunk.AddComponent<MeshFilter>();
+        MeshRenderer mr = chunk.AddComponent<MeshRenderer>();
+        MeshCollider mc = chunk.AddComponent<MeshCollider>();
 
-        // Fill with Perlin Noise
-        float[,] heights = new float[chunkSize + 1, chunkSize + 1];
-        for (int x = 0; x < chunkSize; x++)
+        mr.material = new Material(Shader.Find("Standard"));
+
+        Mesh mesh = new Mesh();
+
+        Vector3[] vertices = new Vector3[chunkSize * chunkSize];
+        int[] triangles = new int[(chunkSize - 1) * (chunkSize - 1) * 6];
+
+        int t = 0;
+        for (int z = 0; z < chunkSize; z++)
         {
-            for (int z = 0; z < chunkSize; z++)
+            for (int x = 0; x < chunkSize; x++)
             {
-                float xCoord = (coord.x * chunkSize + x) / noiseScale;
-                float zCoord = (coord.y * chunkSize + z) / noiseScale;
-                heights[x, z] = Mathf.PerlinNoise(xCoord, zCoord);
+                int i = z * chunkSize + x;
+
+                // ✅ FIX: use world-space sampling with division, not multiplication
+                float worldX = (x + chunkX * (chunkSize - 1)) / noiseScale;
+                float worldZ = (z + chunkZ * (chunkSize - 1)) / noiseScale;
+
+                float y = Mathf.PerlinNoise(worldX, worldZ) * heightMultiplier;
+
+                vertices[i] = new Vector3(x, y, z);
+
+                if (x < chunkSize - 1 && z < chunkSize - 1)
+                {
+                    triangles[t++] = i;
+                    triangles[t++] = i + chunkSize;
+                    triangles[t++] = i + 1;
+
+                    triangles[t++] = i + 1;
+                    triangles[t++] = i + chunkSize;
+                    triangles[t++] = i + chunkSize + 1;
+                }
             }
         }
-        terrainData.SetHeights(0, 0, heights);
 
-        // Add terrain component
-        Terrain terrain = chunk.AddComponent<Terrain>();
-        terrain.terrainData = terrainData;
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
 
-        // Add collider
-        TerrainCollider collider = chunk.AddComponent<TerrainCollider>();
-        collider.terrainData = terrainData;
+        mf.mesh = mesh;
+        mc.sharedMesh = mesh;
 
-        // Store in dictionary
-        terrainChunks.Add(coord, chunk);
+        return chunk;
     }
 }
