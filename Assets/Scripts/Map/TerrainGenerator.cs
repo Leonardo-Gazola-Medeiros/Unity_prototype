@@ -1,73 +1,74 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-public class TerrainGenerator : MonoBehaviour
+public class TerrainChunkGenerator : MonoBehaviour
 {
-    public int width = 100;         // terrain width
-    public int height = 100;        // terrain length
-    public int depth = 20;          // max terrain height
+    public Transform player;             // Reference to the player
+    public int chunkSize = 100;          // Width & length of each chunk
+    public int height = 20;              // Max terrain height
+    public float noiseScale = 60f;       // How "stretchy" the noise is
+    public int renderDistance = 2;       // How many chunks away to load
 
-    public float baseScale = 20f;   // overall zoom of the terrain
+    private Dictionary<Vector2, GameObject> terrainChunks = new Dictionary<Vector2, GameObject>();
 
-    [Range(1, 8)]
-    public int octaves = 3;         // how many noise layers
-    [Range(0f, 1f)]
-    public float persistence = 0.5f; // controls amplitude reduction per octave
-    public float lacunarity = 2.0f;  // controls frequency increase per octave
-
-    public int seed = 42;           // random seed
-    public Vector2 offset;          // move terrain around
-
-    void Start()
+    void Update()
     {
-        GenerateTerrain();
+        GenerateChunksAroundPlayer();
     }
 
-    void GenerateTerrain()
+    void GenerateChunksAroundPlayer()
     {
-        Terrain terrain = GetComponent<Terrain>();
-        terrain.terrainData = GenerateTerrainData(terrain.terrainData);
-    }
+        // Find player's current chunk position
+        int playerX = Mathf.FloorToInt(player.position.x / chunkSize);
+        int playerZ = Mathf.FloorToInt(player.position.z / chunkSize);
 
-    TerrainData GenerateTerrainData(TerrainData terrainData)
-    {
-        terrainData.heightmapResolution = width + 1;
-        terrainData.size = new Vector3(width, depth, height);
-        terrainData.SetHeights(0, 0, GenerateHeights());
-        return terrainData;
-    }
-
-    float[,] GenerateHeights()
-    {
-        float[,] heights = new float[width, height];
-        System.Random prng = new System.Random(seed);
-
-        float offsetX = prng.Next(-100000, 100000) + offset.x;
-        float offsetY = prng.Next(-100000, 100000) + offset.y;
-
-        for (int x = 0; x < width; x++)
+        for (int x = -renderDistance; x <= renderDistance; x++)
         {
-            for (int y = 0; y < height; y++)
+            for (int z = -renderDistance; z <= renderDistance; z++)
             {
-                float amplitude = 1;
-                float frequency = 1;
-                float noiseHeight = 0;
+                Vector2 chunkCoord = new Vector2(playerX + x, playerZ + z);
 
-                for (int i = 0; i < octaves; i++)
+                if (!terrainChunks.ContainsKey(chunkCoord))
                 {
-                    float sampleX = (x + offsetX) / baseScale * frequency;
-                    float sampleY = (y + offsetY) / baseScale * frequency;
-
-                    float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1; 
-                    noiseHeight += perlinValue * amplitude;
-
-                    amplitude *= persistence; // decrease amplitude
-                    frequency *= lacunarity; // increase frequency
+                    CreateChunk(chunkCoord);
                 }
-
-                // normalize values to [0,1]
-                heights[x, y] = Mathf.InverseLerp(-1f, 1f, noiseHeight);
             }
         }
-        return heights;
+    }
+
+    void CreateChunk(Vector2 coord)
+    {
+        // Create GameObject for terrain chunk
+        GameObject chunk = new GameObject("Chunk_" + coord);
+        chunk.transform.position = new Vector3(coord.x * chunkSize, 0, coord.y * chunkSize);
+
+        // Add Terrain + TerrainData
+        TerrainData terrainData = new TerrainData();
+        terrainData.heightmapResolution = chunkSize + 1;
+        terrainData.size = new Vector3(chunkSize, height, chunkSize);
+
+        // Fill with Perlin Noise
+        float[,] heights = new float[chunkSize + 1, chunkSize + 1];
+        for (int x = 0; x < chunkSize; x++)
+        {
+            for (int z = 0; z < chunkSize; z++)
+            {
+                float xCoord = (coord.x * chunkSize + x) / noiseScale;
+                float zCoord = (coord.y * chunkSize + z) / noiseScale;
+                heights[x, z] = Mathf.PerlinNoise(xCoord, zCoord);
+            }
+        }
+        terrainData.SetHeights(0, 0, heights);
+
+        // Add terrain component
+        Terrain terrain = chunk.AddComponent<Terrain>();
+        terrain.terrainData = terrainData;
+
+        // Add collider
+        TerrainCollider collider = chunk.AddComponent<TerrainCollider>();
+        collider.terrainData = terrainData;
+
+        // Store in dictionary
+        terrainChunks.Add(coord, chunk);
     }
 }

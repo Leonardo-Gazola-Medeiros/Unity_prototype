@@ -55,10 +55,12 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift))
         {
             animator.SetBool("Sprint", true);
+            moveSpeed = 12f;
         }
         else
         {
             animator.SetBool("Sprint", false);
+            moveSpeed = 5f;
         }
 
         // Attack (mouse click)
