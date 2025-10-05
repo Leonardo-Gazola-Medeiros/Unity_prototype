@@ -216,9 +216,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e01da9176bc59ae41bb81992c8fd3fd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 1840723840}
-  offset: {x: 0, y: 0.5, z: -2}
+  target: {fileID: 1463355236}
+  headTarget: {fileID: 1463355236}
+  offset: {x: 0, y: 2, z: -3}
   smoothSpeed: 1.5
+  mouseSensitivity: 2
+  maxLookUpAngle: 80
+  maxLookDownAngle: 80
 --- !u!81 &717811963
 AudioListener:
   m_ObjectHideFlags: 0
@@ -407,8 +411,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3415ed1d2727a9c4493872b5a77a56a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
-  jumpForce: 7
+  moveSpeed: 2
+  sprintSpeed: 12
+  jumpForce: 6
   groundCheckDistance: 0.2
 --- !u!54 &1463355234
 Rigidbody:
@@ -420,7 +425,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 10
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -436,7 +441,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!4 &1463355236 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a5910753147032f4b9b795e500beca8f, type: 3}
@@ -480,13 +485,13 @@ CapsuleCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
-  m_ProvidesContacts: 0
+  m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 1
+  m_Height: 1.8666725
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.888731, z: 0}
 --- !u!1001 &1606228154
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -497,11 +502,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: a5910753147032f4b9b795e500beca8f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8.493
+      value: 8.534
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a5910753147032f4b9b795e500beca8f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 25.5
+      value: 25.318
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a5910753147032f4b9b795e500beca8f, type: 3}
       propertyPath: m_LocalPosition.z
@@ -560,11 +565,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1463355238}
   m_SourcePrefab: {fileID: 100100000, guid: a5910753147032f4b9b795e500beca8f, type: 3}
---- !u!4 &1840723840 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -4194957117132941054, guid: a5910753147032f4b9b795e500beca8f, type: 3}
-  m_PrefabInstance: {fileID: 1606228154}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
