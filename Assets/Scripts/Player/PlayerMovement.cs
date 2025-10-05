@@ -4,46 +4,60 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5f;
+    public float sprintSpeed = 12f;
     public float jumpForce = 7f;
     public float groundCheckDistance = 0.2f;
 
     private Animator animator;
     private Rigidbody rb;
     private bool isGrounded;
+    private float currentSpeed;
 
     private void Start()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-
-        // Settings for Rigidbody
-        rb.constraints = RigidbodyConstraints.FreezeRotation; // prevent tipping over
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        currentSpeed = moveSpeed;
     }
 
     private void Update()
     {
-        float horizontal = Input.GetAxis("Horizontal"); // A-D
-        float vertical = Input.GetAxis("Vertical");     // W-S
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
         Vector3 movement = new Vector3(horizontal, 0, vertical).normalized;
 
-        // Movement (handled in FixedUpdate for physics)
+        // Handle Sprint
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            currentSpeed = sprintSpeed;
+            animator.SetBool("Sprint", true);
+        }
+        else
+        {
+            currentSpeed = moveSpeed;
+            animator.SetBool("Sprint", false);
+        }
+
+        // Movement or Stop
         if (movement.magnitude > 0)
         {
             Move(movement);
+        }
+        else
+        {
+            // Stop immediately when no input
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
 
         // Ground check
         isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance + 0.1f);
 
-        // Jump (spacebar) 
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Jump
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            animator.SetBool("Jump", true);
-        }
-        else if (Input.GetKeyUp(KeyCode.Space))
-        {
-            animator.SetBool("Jump", false);
+            Jump();
         }
 
         // Animator updates
@@ -51,19 +65,7 @@ public class PlayerMovement : MonoBehaviour
         animator.SetFloat("Vertical", vertical);
         animator.SetBool("Jump", !isGrounded);
 
-        // Sprint (Shift)
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            animator.SetBool("Sprint", true);
-            moveSpeed = 12f;
-        }
-        else
-        {
-            animator.SetBool("Sprint", false);
-            moveSpeed = 5f;
-        }
-
-        // Attack (mouse click)
+        // Attack
         if (Input.GetMouseButtonDown(0))
         {
             animator.SetTrigger("Attack");
@@ -72,8 +74,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Move(Vector3 direction)
     {
-        // Convert movement relative to player’s forward
-        Vector3 moveDir = transform.TransformDirection(direction) * moveSpeed;
+        Vector3 moveDir = transform.TransformDirection(direction) * currentSpeed;
         moveDir.y = rb.linearVelocity.y; // keep gravity effect
         rb.linearVelocity = moveDir;
     }
